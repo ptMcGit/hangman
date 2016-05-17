@@ -3,20 +3,24 @@
 require "pry"
 # word list
 
-word_list = [
-  "dog",
-  "cat",
-  "mouse",
-  "rabbit",
-  "goose",
-]
+max_word_length = 3
+
+word_list = []
+
+
+f = File.open("/usr/share/dict/words", "r")
+f.each do |line|
+  if line.length <= max_word_length
+    word_list.push line.chomp
+  end
+  #print "line: "
+  #puts line
+end
 
 guesses_allowed = 6
 
 word = word_list[rand(word_list.count)]
 word_length = word.length
-
-
 
 letters = word.downcase.split("")
 
@@ -39,9 +43,6 @@ game_end = false
 win = false
 until game_end
   
-  if guesses_allowed == 0
-    game_end = true
-  end
   #binding.pry
   correct_g.each do |x|
     print x
@@ -79,7 +80,12 @@ until game_end
     game_end = true
     win = true
   end
-  binding.pry
+
+  if guesses_allowed == 0
+    game_end = true
+  end
+
+
 end
 #guess.
 
