@@ -1,24 +1,19 @@
 #  Hangman
 
-require "pry"
-# word list
-
 min_word_length = 5
 max_word_length = 10
+guesses_allowed = 6
 
 word_list = []
-
+$guess_list = []
 
 f = File.open("/usr/share/dict/words", "r")
+
 f.each do |line|
   if line.length <= max_word_length && line.length >= min_word_length
     word_list.push line.chomp
   end
-  #print "line: "
-  #puts line
 end
-
-guesses_allowed = 6
 
 word = word_list[rand(word_list.count)]
 word_length = word.length
@@ -26,18 +21,27 @@ word_length = word.length
 $letters = word.downcase.split("")
 
 $correct_g = []
+
 0.upto word_length - 1 do |x|
-  #print x
   $correct_g[x] = "_"
 end
 
-#binding.pry
 $allowed_chars = []
-
+$freq_list = {}
 
 97.upto 122 do |x|
   $allowed_chars.push x.chr
+  $freq_list[x.chr] = 0
 end
+
+word_list.each do |item|
+  item.split("").each do |letter|
+    $freq_list[letter.downcase] += 1
+  end
+end
+
+$freq_list = $freq_list.sort_by { |a, b| b }
+$freq_list = $freq_list.map { |a,b| a }
 
 game_end = false
 win = false
@@ -45,30 +49,33 @@ win = false
 $hints = 3
 
 def get_hint
-  #allowed_hints = $allowed_chars
-  #allowed_hints.delete $correct_g.uniq
-  
+  allowed_hints = $freq_list
+  allowed_hints = allowed_hints - $correct_g.uniq
+  allowed_hints = allowed_hints - $guess_list.uniq
+
+  index = 0
+
+  until index == allowed_hints.length - 1
+    unless $letters.include? allowed_hints[index]
+      allowed_hints.delete_at(index)
+      next
+    else
+      index += 1
+    end
+  end
 
   if $hints < 1
     return nil
   else
-    #$allowed_chars.each do |x|
-    0.upto $letters.count - 1 do |x|
-      
-      if $letters[x] != $correct_g[x]
-        $hints -= 1
-        binding.pry
-        return $letters[x]
-      end
-      
-    end
+    $hints -= 1
+    return allowed_hints[0]
   end
+
 end
 
 
 until game_end
-  
-  #binding.pry
+
   $correct_g.each do |x|
     print x
     print " "
@@ -82,15 +89,15 @@ until game_end
   if guess == "?"
     guess = get_hint
   end
+
   if guess == nil
     puts "You have no more hints!"
     next
   end
 
-
-  
-  unless $allowed_chars.include? guess
-    puts "That is not a valid character."
+  if $guess_list.include? guess
+    puts "You already guessed that."
+    puts "Try again."
     next
   end
 
@@ -99,7 +106,16 @@ until game_end
     game_end = true
     win = true
   end
-  
+
+
+  unless $allowed_chars.include? guess
+    puts "That is not a valid character."
+    next
+  else
+    $guess_list.push guess
+  end
+
+
   if $letters.include? guess
     0.upto word_length - 1 do |x|
       if guess == $letters[x]
@@ -111,7 +127,6 @@ until game_end
   end
 
   if $correct_g == $letters
-    #binding.pry
     game_end = true
     win = true
   end
@@ -119,12 +134,7 @@ until game_end
   if guesses_allowed == 0
     game_end = true
   end
-
-
 end
-#guess.
-
-#binding.pry
 
 puts "The game has ended."
 
@@ -134,5 +144,6 @@ else
   puts "You lose!"
 end
 
-
-#print "enter a word: "
+print "The word was "
+print $letters.join
+puts "."
