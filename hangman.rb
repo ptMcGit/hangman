@@ -8,30 +8,23 @@ allowed_chars = ("a".."z").to_a
 def load_words (file, min, max)
 
   # load in words from file that are of lengths between min and max
+  print "Loading words ...\n"
 
-  valid_words = []
-  File.open(file, "r") do |f_handle|
-    f_handle.each_line do |line|
-      line = line.chomp
-      if line.length <= max && line.length >= min
-        valid_words.push line
-      end
-    end
+  File.open(file, "r").map  { |x| x.chomp }.select do |line|
+      line.length <= max && line.length >= min
   end
-  return valid_words
 end
 
 def get_letter_freq_ascending(lines)
 
   # returns a hash with frequency of each letter in ascending order
 
-  chars = ("a".."z")
-  h = Hash[chars.map {|x| [x, 0]}]
+  h = ("a".."z").map { |x| [x,0] }.to_h
 
   lines.each do |item|
     item.split("").each do |letter|
       letter.downcase!
-      chars.include? letter && h[letter] += 1
+      h.include? letter && h[letter] += 1
     end
   end
 
@@ -109,10 +102,9 @@ end
 
 # Preliminary Stuff
 
-min_word_length = 5
+min_word_length = 6
 max_word_length = 10
 
-print "Loading words ...\n"
 valid_words = load_words("/usr/share/dict/words", min_word_length, max_word_length)
 sorted_letters = get_letter_freq_ascending(valid_words)
 
